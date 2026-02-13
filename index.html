@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Online Love Museum</title>
+    <style>
+        :root{
+            --bg1:#0b0b12;
+            --bg2:#151528;
+            --card:#1c1c33cc;
+            --border:#ffffff22;
+            --text:#f7f7ff;
+            --muted:#c9c9e6;
+            --accent:#ff4d8d;
+            --accent2:#7c5cff;
+            --shadow: 0 16px 40px rgba(0,0,0,.45);
+            --radius: 22px;
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            min-height:100vh;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+            color:var(--text);
+            background: radial-gradient(1200px 800px at 10% 10%, #2b1644 0%, transparent 55%),
+            radial-gradient(900px 700px at 90% 20%, #1b2a6a 0%, transparent 55%),
+            linear-gradient(180deg, var(--bg1), var(--bg2));
+            overflow:hidden;
+        }
+
+        /* Floating hearts background */
+        .hearts{
+            position:fixed; inset:0;
+            pointer-events:none;
+            opacity:.18;
+            filter: blur(.2px);
+        }
+        .heart{
+            position:absolute;
+            width:14px; height:14px;
+            background: var(--accent);
+            transform: rotate(45deg);
+            border-radius: 3px;
+            animation: floatUp linear infinite;
+        }
+        .heart:before,.heart:after{
+            content:"";
+            position:absolute;
+            width:14px; height:14px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+        .heart:before{ left:-7px; top:0; }
+        .heart:after{ left:0; top:-7px; }
+        @keyframes floatUp{
+            from{ transform: translateY(20vh) rotate(45deg); opacity:0 }
+            10%{opacity:1}
+            to{ transform: translateY(-120vh) rotate(45deg); opacity:0 }
+        }
+
+        header{
+            position:fixed; top:0; left:0; right:0;
+            padding:14px 16px;
+            display:flex; justify-content:space-between; align-items:center;
+            z-index:10;
+            background: linear-gradient(180deg, rgba(10,10,18,.85), rgba(10,10,18,0));
+            backdrop-filter: blur(10px);
+        }
+        .brand{
+            display:flex; gap:10px; align-items:center;
+            font-weight:700; letter-spacing:.2px;
+        }
+        .badge{
+            font-size:12px;
+            padding:6px 10px;
+            border:1px solid var(--border);
+            border-radius:999px;
+            color:var(--muted);
+            background: rgba(255,255,255,.06);
+        }
+        .hint{
+            font-size:12px;
+            color:var(--muted);
+            display:flex; gap:8px; align-items:center;
+        }
+        .dot{
+            width:7px; height:7px; border-radius:50%;
+            background: var(--accent);
+            box-shadow: 0 0 16px rgba(255,77,141,.75);
+            animation:pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes pulse{ 50%{ transform:scale(1.35); opacity:.6 } }
+
+        main{
+            height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:70px 14px 18px;
+        }
+
+        .frame{
+            width:min(480px, 96vw);
+            height:min(780px, 86vh);
+            border-radius:var(--radius);
+            border:1px solid var(--border);
+            background: rgba(255,255,255,.04);
+            box-shadow: var(--shadow);
+            position:relative;
+            overflow:hidden;
+        }
+
+        .slides{
+            height:100%;
+            display:flex;
+            transition: transform .35s ease;
+            will-change: transform;
+            touch-action: pan-y;
+        }
+        .slide{
+            min-width:100%;
+            padding:18px 16px 16px;
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+
+        .card{
+            background: var(--card);
+            border:1px solid var(--border);
+            border-radius: 18px;
+            padding:14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+        }
+        .title{
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            align-items:flex-start;
+        }
+        .title h2{
+            margin:0;
+            font-size:18px;
+            line-height:1.2;
+        }
+        .subtitle{
+            color:var(--muted);
+            font-size:13px;
+            margin-top:6px;
+        }
+        .exhibitNo{
+            font-size:12px;
+            padding:6px 10px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background: rgba(255,255,255,.06);
+            color:var(--muted);
+            white-space:nowrap;
+        }
+
+        .media{
+            border-radius:16px;
+            overflow:hidden;
+            border:1px solid var(--border);
+            background: rgba(0,0,0,.25);
+        }
+        .media img{
+            width:100%;
+            max-height: 380px;
+            object-fit: contain;
+            display:block;
+            border-radius:16px;
+        }
+
+        .grid{
+            display:grid;
+            gap:10px;
+        }
+        .chips{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+        .chip{
+            font-size:13px;
+            color:var(--text);
+            padding:10px 12px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background: rgba(255,255,255,.06);
+        }
+
+        .nav{
+            position:absolute;
+            left:12px; right:12px; bottom:12px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            z-index:5;
+        }
+        button{
+            -webkit-tap-highlight-color: transparent;
+            border:none;
+            border-radius: 999px;
+            padding:12px 14px;
+            font-weight:700;
+            color:var(--text);
+            background: linear-gradient(135deg, rgba(255,77,141,.95), rgba(124,92,255,.95));
+            box-shadow: 0 10px 24px rgba(255,77,141,.18);
+            cursor:pointer;
+        }
+        button.secondary{
+            background: rgba(255,255,255,.08);
+            border:1px solid var(--border);
+            color:var(--muted);
+            box-shadow:none;
+        }
+        button:active{ transform: translateY(1px); }
+
+        .dots{
+            display:flex; gap:8px; align-items:center; justify-content:center;
+            flex:1;
+        }
+        .dots span{
+            width:7px; height:7px; border-radius:50%;
+            background: rgba(255,255,255,.25);
+            transition: .25s ease;
+        }
+        .dots span.active{
+            background: var(--accent);
+            box-shadow: 0 0 14px rgba(255,77,141,.6);
+            transform: scale(1.2);
+        }
+
+        /* typing */
+        .type{
+            font-size:18px;
+            margin:0;
+            line-height:1.35;
+        }
+        .caret{
+            display:inline-block;
+            width:10px;
+            animation: blink .9s infinite;
+            color: var(--accent);
+        }
+        @keyframes blink{ 50%{opacity:0} }
+
+        /* lock */
+        .lockBox{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            align-items:stretch;
+        }
+        .lockRow{
+            display:flex; gap:10px;
+        }
+        input{
+            flex:1;
+            padding:12px 12px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background: rgba(255,255,255,.06);
+            color: var(--text);
+            outline:none;
+            font-size:15px;
+
+            /* ✅ NEW: show uppercase (style unchanged) */
+            text-transform: uppercase;
+        }
+        .error{
+            color:#ffb3c9;
+            font-size:13px;
+            min-height: 18px;
+        }
+        .success{
+            color:#bfffd8;
+            font-size:13px;
+            min-height: 18px;
+        }
+
+        /* confetti */
+        canvas#confetti{
+            position:fixed; inset:0;
+            pointer-events:none;
+            display:none;
+            z-index:50;
+        }
+
+        footerNote{
+            display:block;
+            color:var(--muted);
+            font-size:12px;
+            text-align:center;
+            margin-top:auto;
+            opacity:.9;
+        }
+
+        /* ===== Exhibit 3 (Cats) - only new styles ===== */
+        .cat-grid{
+            display:grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap:10px;
+            margin-top:10px;
+        }
+        .cat{
+            border:none;
+            padding:0;
+            background: rgba(255,255,255,.06);
+            border:1px solid var(--border);
+            border-radius:16px;
+            overflow:hidden;
+            cursor:pointer;
+            color:var(--text);
+        }
+        .cat img{
+            width:100%;
+            height:110px;
+            object-fit:cover;
+            display:block;
+        }
+        .cat-name{
+            padding:8px;
+            font-size:13px;
+            color:var(--muted);
+            text-align:center;
+        }
+
+        /* ===== Music button (small, clean) ===== */
+        .musicBtn{
+            position: fixed;
+            right: 14px;
+            top: 64px; /* under the header */
+            z-index: 20;
+            display:flex;
+            align-items:center;
+            gap:8px;
+            padding:10px 12px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background: rgba(255,255,255,.08);
+            color: var(--text);
+            cursor:pointer;
+            user-select:none;
+            backdrop-filter: blur(10px);
+        }
+        .musicBtn small{
+            color: var(--muted);
+            font-weight:600;
+            font-size:12px;
+        }
+        .musicBtn .icon{
+            font-size:16px;
+            line-height:1;
+        }
+    </style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+
+<!-- Background Music -->
+<audio id="bgm" preload="auto" loop>
+    <source src="music/song.mp3" type="audio/mpeg">
+</audio>
+
+<div class="hearts" id="hearts"></div>
+
+<header>
+    <div class="brand">
+        <span>💘 Online Love Museum</span>
+        <span class="badge">private exhibit</span>
+    </div>
+    <div class="hint"><span class="dot"></span><span>Swipe or use buttons</span></div>
+</header>
+
+<!-- Music Toggle (doesn't change your layout) -->
+<div class="musicBtn" id="musicBtn" role="button" aria-label="Toggle music" title="Toggle music">
+    <span class="icon" id="musicIcon">🔇</span>
+    <small id="musicText">Music</small>
+</div>
+
+<main>
+    <div class="frame" id="frame">
+        <div class="slides" id="slides">
+
+            <!-- 0: Intro -->
+            <section class="slide">
+                <div class="card">
+                    <div class="title">
+                        <div>
+                            <h2>Welcome, <span id="herName">Mica</span> 💞</h2>
+                            <div class="subtitle">I didn’t buy flowers… I built you an exhibition.</div>
+                        </div>
+                        <div class="exhibitNo">INTRO</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <p class="type" id="typed"></p><span class="caret">|</span>
+                    <div class="subtitle" style="margin-top:10px">
+                        Tip: turn your sound on and click the music button 🎶
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="subtitle">A small promise:</div>
+                    <div style="font-size:15px; line-height:1.6; margin-top:8px">
+                        “Until we meet for real, I’ll keep finding ways to make you smile.”
+                    </div>
+                </div>
+
+                <footerNote>Swipe left →</footerNote>
+            </section>
+
+            <!-- 1: First message -->
+            <section class="slide">
+                <div class="card">
+                    <div class="title">
+                        <div>
+                            <h2>Exhibit #1 — The First Message</h2>
+                            <div class="subtitle">The moment everything started.</div>
+                        </div>
+                        <div class="exhibitNo">#1</div>
+                    </div>
+                </div>
+
+                <div class="media">
+                    <img src="first.jpeg" alt="First message screenshot" />
+                </div>
+
+                <div class="card">
+                    <div class="subtitle">
+                        Curator note: I still remember the exact vibe of this moment 😌
+                    </div>
+                </div>
+
+                <footerNote>Swipe left →</footerNote>
+            </section>
+
+            <!-- 2: When she danced -->
+            <section class="slide">
+                <div class="card">
+                    <div class="title">
+                        <div>
+                            <h2>Exhibit #2 — When You Danced</h2>
+                            <div class="subtitle">A certified “I’m down bad” moment.</div>
+                        </div>
+                        <div class="exhibitNo">#2</div>
+                    </div>
+                </div>
+
+                <div class="card grid">
+                    <div style="font-size:15px; line-height:1.5">
+                        “On this day, she danced… and my brain forgot how to behave.
+                        Science confirms: my heart rate increased by 200%.”
+                    </div>
+                </div>
+
+                <!-- Open video in NEW TAB -->
+                <a href="images/dance.mp4" target="_blank" style="text-decoration:none;">
+                    <div class="card" style="text-align:center; cursor:pointer;">
+                        <div style="font-size:44px;">🎥</div>
+                        <div style="margin-top:10px; font-weight:700; color:var(--text);">
+                            Tap to watch the moment
+                        </div>
+                        <div class="subtitle">Exhibit Film — When You Danced</div>
+                    </div>
+                </a>
+
+                <footerNote>Swipe left →</footerNote>
+            </section>
+
+            <!-- 3: Cats (replaces inside jokes) -->
+            <section class="slide">
+                <div class="card">
+                    <div class="title">
+                        <div>
+                            <h2>Exhibit #3 — The 3 Love Guardians 🐾</h2>
+                            <div class="subtitle">Every Valentine needs a security team.</div>
+                        </div>
+                        <div class="exhibitNo">#3</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="subtitle">Tap a cat → get your Valentine verdict 😼</div>
+
+                    <div class="cat-grid" id="cats">
+                        <!-- Replace images with your real cat pics -->
+                        <button class="cat" type="button"
+                                data-msg="Guardian #1 says: You are officially my human’s Valentine. Approved. ✅">
+                            <img src="images/cat1.jpeg" alt="Cat 1" />
+                            <div class="cat-name">Cat #1</div>
+                        </button>
+
+                        <button class="cat" type="button"
+                                data-msg="Guardian #2 says: More kisses. More snacks. More love. 💕">
+                            <img src="images/cat2.jpeg" alt="Cat 2" />
+                            <div class="cat-name">Cat #2</div>
+                        </button>
+
+                        <button class="cat" type="button"
+                                data-msg="Guardian #3 says: Distance is temporary. Love is permanent. 😽">
+                            <img src="images/cat3.jpeg" alt="Cat 3" />
+                            <div class="cat-name">Cat #3</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" id="catMessage" style="display:none;">
+                    <div class="subtitle">Valentine verdict:</div>
+                    <div style="font-size:15px; line-height:1.6;" id="catText"></div>
+                </div>
+
+                <div class="card">
+                    <div class="subtitle">Curator note:</div>
+                    <div style="font-size:15px; line-height:1.5">
+                        I swear, your cats became part of my daily happiness too. 🥹
+                    </div>
+                </div>
+
+                <footerNote>Swipe left →</footerNote>
+            </section>
+
+            <!-- 4: Romantic section -->
+            <section class="slide">
+                <div class="card">
+                    <div class="title">
+                        <div>
+                            <h2>Exhibit #4 — Things I Adore About You</h2>
+                            <div class="subtitle">Serious museum hours. No joking (a little).</div>
+                        </div>
+                        <div class="exhibitNo">#4</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="chips">
+                        <span class="chip">Your humor 🥹</span>
+                        <span class="chip">How you care</span>
+                        <span class="chip">Your voice notes</span>
+                        <span class="chip">Your smile (yes, even in pics)</span>
+                        <span class="chip">The way you make me want to be better</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="font-size:15px; line-height:1.6">
+                        “We’ve been together only a few months, but you already feel like a safe place.
+                        And I’m excited for the day this becomes real-life, not just Wi-Fi love.”
+                    </div>
+                </div>
+
+                <footerNote>Swipe left →</footerNote>
+            </section>
+
+            <!-- 5: Final (Locked) -->
+            <section class="slide">
+                <div class="card">
+                    <div class="title">
+                        <div>
+                            <h2>Final Exhibit — Restricted Room 🔒</h2>
+                            <div class="subtitle">Only the real owner of my heart can open this.</div>
+                        </div>
+                        <div class="exhibitNo">FINAL</div>
+                    </div>
+                </div>
+
+                <div class="card lockBox">
+                    <div class="subtitle">Hint: Our little word… the one that sounds like a fake roar 🦁❤️</div>
+                    <div class="lockRow">
+                        <input id="pass" placeholder="Enter password..." autocomplete="off" />
+                        <button id="unlock">Unlock</button>
+                    </div>
+                    <div class="error" id="err"></div>
+                    <div class="success" id="ok"></div>
+                </div>
+
+                <div class="card" id="finalMessage" style="display:none;">
+                    <h2 style="margin:0 0 8px 0;">Happy Valentine’s Day, <span id="herName2">Mica</span> ❤️</h2>
+                    <div style="font-size:15px; line-height:1.6">
+                        I know we haven’t met yet — but you’re already special to me.
+                        Thank you for being funny, romantic, and for choosing me every day.
+                        <br><br>
+                        One day I’ll hold your hand for real.
+                        Until then… this is my little way to say:
+                        <b>I choose you.</b> 🌙✨
+                        <br><br>
+                        <span style="color:var(--muted)">— from your web developer boyfriend 😄</span>
+                    </div>
+                </div>
+
+                <footerNote>End of exhibition 💞</footerNote>
+            </section>
+
+        </div>
+
+        <div class="nav">
+            <button class="secondary" id="prev">←</button>
+            <div class="dots" id="dots"></div>
+            <button id="next">→</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    // ====== CONFIG (edit these) ======
+    const HER_NAME = "Mica";
+    const PASSWORD = "RAWR";
+
+    // ====== Intro typing ======
+    const typedEl = document.getElementById("typed");
+    const introText = `Hi Mica…\nWelcome to our Online Love Museum.\n\nI collected a few moments that mean a lot to me.\nReady?`;
+    let ti = 0;
+
+    function typeLoop(){
+        typedEl.textContent = introText.slice(0, ti++);
+        if (ti <= introText.length) requestAnimationFrame(typeLoop);
+    }
+
+    // ====== Slides logic ======
+    const slides = document.getElementById("slides");
+    const total = slides.children.length;
+    let idx = 0;
+
+    const dots = document.getElementById("dots");
+    for (let i=0;i<total;i++){
+        const s = document.createElement("span");
+        if(i===0) s.classList.add("active");
+        s.addEventListener("click", ()=>go(i));
+        dots.appendChild(s);
+    }
+
+    function render(){
+        slides.style.transform = `translateX(${-idx*100}%)`;
+        [...dots.children].forEach((d,i)=>d.classList.toggle("active", i===idx));
+        document.getElementById("prev").disabled = idx===0;
+        document.getElementById("next").disabled = idx===total-1;
+    }
+    function go(i){
+        idx = Math.max(0, Math.min(total-1, i));
+        render();
+    }
+
+    document.getElementById("prev").addEventListener("click", ()=>go(idx-1));
+    document.getElementById("next").addEventListener("click", ()=>go(idx+1));
+
+    // ====== Touch swipe ======
+    const frame = document.getElementById("frame");
+    let startX = null;
+    frame.addEventListener("touchstart", (e)=>{
+        startX = e.touches[0].clientX;
+    }, {passive:true});
+
+    frame.addEventListener("touchend", (e)=>{
+        if(startX === null) return;
+        const endX = e.changedTouches[0].clientX;
+        const dx = endX - startX;
+        if (Math.abs(dx) > 45){
+            if(dx < 0) go(idx+1);
+            else go(idx-1);
+        }
+        startX = null;
+    });
+
+    // ====== Exhibit 3: Cats interaction ======
+    const catsWrap = document.getElementById("cats");
+    const catMessage = document.getElementById("catMessage");
+    const catText = document.getElementById("catText");
+
+    if (catsWrap) {
+        catsWrap.addEventListener("click", (e) => {
+            const btn = e.target.closest(".cat");
+            if (!btn) return;
+            catText.textContent = btn.dataset.msg;
+            catMessage.style.display = "block";
+            btn.animate([{transform:"scale(1)"},{transform:"scale(1.03)"},{transform:"scale(1)"}], {duration:220});
+            if (navigator.vibrate) navigator.vibrate(20);
+        });
+    }
+
+    // ====== Unlock final ======
+    const pass = document.getElementById("pass");
+    const unlock = document.getElementById("unlock");
+    const err = document.getElementById("err");
+    const ok = document.getElementById("ok");
+    const finalMessage = document.getElementById("finalMessage");
+
+    // ✅ NEW: Force uppercase while typing (no style change)
+    pass.addEventListener("input", () => {
+        pass.value = pass.value.toUpperCase();
+    });
+
+    function doUnlock(){
+        err.textContent = "";
+        ok.textContent = "";
+        const val = (pass.value || "").trim();
+        if(!val){
+            err.textContent = "Type something first 😄";
+            return;
+        }
+        if(val.toLowerCase() !== PASSWORD.toLowerCase()){
+            err.textContent = "Nope 😌 try again (hint: something between us)";
+            if (navigator.vibrate) navigator.vibrate([30,40,30]);
+            return;
+        }
+        ok.textContent = "Unlocked ❤️";
+        finalMessage.style.display = "block";
+        confettiBoom();
+        if (navigator.vibrate) navigator.vibrate([20,20,60]);
+    }
+
+    unlock.addEventListener("click", doUnlock);
+    pass.addEventListener("keydown", (e)=>{ if(e.key==="Enter") doUnlock(); });
+
+    // ====== Hearts background ======
+    const heartsWrap = document.getElementById("hearts");
+    function spawnHearts(){
+        heartsWrap.innerHTML = "";
+        const count = 18;
+        for(let i=0;i<count;i++){
+            const h = document.createElement("div");
+            h.className = "heart";
+            const left = Math.random()*100;
+            const dur = 6 + Math.random()*8;
+            const delay = Math.random()*4;
+            const size = 10 + Math.random()*10;
+            h.style.left = left + "vw";
+            h.style.animationDuration = dur + "s";
+            h.style.animationDelay = delay + "s";
+            h.style.width = size + "px";
+            h.style.height = size + "px";
+            heartsWrap.appendChild(h);
+        }
+    }
+
+    // ====== Simple confetti ======
+    const conf = document.getElementById("confetti");
+    const ctx = conf.getContext("2d");
+    let confettiPieces = [];
+    function resize(){
+        conf.width = window.innerWidth;
+        conf.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+
+    function confettiBoom(){
+        resize();
+        conf.style.display = "block";
+        confettiPieces = Array.from({length:140}, ()=>({
+            x: Math.random()*conf.width,
+            y: -20 - Math.random()*conf.height*0.2,
+            r: 2 + Math.random()*4,
+            vy: 2 + Math.random()*5,
+            vx: -2 + Math.random()*4,
+            rot: Math.random()*Math.PI,
+            vr: (-0.2 + Math.random()*0.4)
+        }));
+        let t = 0;
+        function tick(){
+            t++;
+            ctx.clearRect(0,0,conf.width,conf.height);
+            for(const p of confettiPieces){
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rot += p.vr;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot);
+                ctx.fillRect(-p.r, -p.r, p.r*2.2, p.r*2.2);
+                ctx.restore();
+            }
+            confettiPieces = confettiPieces.filter(p => p.y < conf.height + 40);
+            if (t < 160 && confettiPieces.length) requestAnimationFrame(tick);
+            else {
+                conf.style.display = "none";
+                ctx.clearRect(0,0,conf.width,conf.height);
+            }
+        }
+        tick();
+    }
+
+    // ====== Background music (plays after first interaction) ======
+    const bgm = document.getElementById("bgm");
+    const musicBtn = document.getElementById("musicBtn");
+    const musicIcon = document.getElementById("musicIcon");
+    const musicText = document.getElementById("musicText");
+
+    let musicOn = false;
+
+    // nice defaults
+    if (bgm) bgm.volume = 0.22;
+
+    function setMusicUI(){
+        if(!musicIcon || !musicText) return;
+        musicIcon.textContent = musicOn ? "🔊" : "🔇";
+        musicText.textContent = musicOn ? "Music on" : "Music off";
+    }
+
+    async function startMusic(){
+        if (!bgm) return;
+        try{
+            await bgm.play();
+            musicOn = true;
+            setMusicUI();
+        }catch(e){
+            // autoplay blocked; user can tap button
+        }
+    }
+
+    function stopMusic(){
+        if (!bgm) return;
+        bgm.pause();
+        musicOn = false;
+        setMusicUI();
+    }
+
+    // Toggle button
+    if (musicBtn){
+        musicBtn.addEventListener("click", async (e)=>{
+            e.stopPropagation();
+            if (!bgm) return;
+            if (musicOn) stopMusic();
+            else await startMusic();
+        });
+    }
+
+    // Start music on first user interaction anywhere (one-time)
+    let firstInteractionDone = false;
+    function firstInteraction(){
+        if (firstInteractionDone) return;
+        firstInteractionDone = true;
+        startMusic();
+    }
+    window.addEventListener("pointerdown", firstInteraction, { once:true });
+    window.addEventListener("touchstart", firstInteraction, { once:true });
+
+    // ====== Init ======
+    document.getElementById("herName").textContent = HER_NAME;
+    document.getElementById("herName2").textContent = HER_NAME;
+    spawnHearts();
+    typeLoop();
+    render();
+    setMusicUI();
+</script>
+</body>
+</html>
